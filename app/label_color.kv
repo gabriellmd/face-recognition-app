@@ -1,0 +1,36 @@
+<Label>
+    font_size: 20
+    background_color: (134 / 255, 135 / 255, 134 / 255, 1)
+	canvas.before:
+		Color: 
+			rgba: self.background_color
+        Rectangle:
+	        size: self.size
+	        pos: self.pos
+
+<MyLogo>
+    font_size: 30
+    background_color: (134 / 255, 135 / 255, 134 / 255, 1)
+	canvas.before:
+		Color: 
+			rgba: self.background_color
+        Rectangle:
+	        size: self.size
+	        pos: self.pos
+    bold: True
+    italic: True
+    outline_color: (0, 0, 1)
+    outline_width: 10
+
+<RoundedButton@Button>
+    background_color: (0, 0, 0, 0)
+    background_normal: ''
+    canvas.before:
+        Color: 
+            rgba: (1, 0, 0, 1)
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [50]
+
+			
