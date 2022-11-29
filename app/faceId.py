@@ -47,7 +47,7 @@ class CamApp(App):
         blue = [0.1, 0, 1, 1] 
 
         # Main layout components
-        self.logo = MyLogo(text="Face Recongnizer APP", size_hint=(1,.15))
+        self.logo = MyLogo(text="Face Recognizer APP", size_hint=(1,.15))
         self.web_cam = Image(size_hint=(1,.8))
         self.button = RoundedButton(text="Click to Verify", on_press=self.verify, background_color=blue, size_hint=(0.5, .15), pos_hint={'center_x': 0.5})
         self.black_label = BlackLabel(text="", size_hint=(1,.05))
@@ -102,8 +102,8 @@ class CamApp(App):
     # Verification function to verify person
     def verify(self, *args):
         # Specify thresholds
-        detection_threshold = 0.8
-        verification_threshold = 0.6
+        detection_threshold = 0.90
+        verification_threshold = 0.95
 
         # Capture input image from our webcam
         SAVE_PATH = os.path.join('application_data', 'input_image', 'input_image.jpg')
