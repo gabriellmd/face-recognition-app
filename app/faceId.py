@@ -44,7 +44,7 @@ class CamApp(App):
 
     def build(self):
 
-        blue = [0.1, 0, 1, 1] 
+        blue = [0.1, 0, 1, 1]
 
         # Main layout components
         self.logo = MyLogo(text="Face Recognizer APP", size_hint=(1,.15))
@@ -62,7 +62,7 @@ class CamApp(App):
         layout.add_widget(self.verification_label)
 
         # Load tensorflow/keras model
-        self.model = tf.keras.models.load_model('siamese_model_300_50.h5', custom_objects={'L1Dist':L1Dist})
+        self.model = tf.keras.models.load_model('siamese_model_400_30.h5', custom_objects={'L1Dist':L1Dist})
 
         # Setup video capture device
         self.capture = cv2.VideoCapture(0)
@@ -102,8 +102,8 @@ class CamApp(App):
     # Verification function to verify person
     def verify(self, *args):
         # Specify thresholds
-        detection_threshold = 0.90
-        verification_threshold = 0.95
+        detection_threshold = 0.7
+        verification_threshold = 0.7
 
         # Capture input image from our webcam
         SAVE_PATH = os.path.join('application_data', 'input_image', 'input_image.jpg')
@@ -122,11 +122,11 @@ class CamApp(App):
             results.append(result)
         
         # Detection Threshold: Metric above which a prediciton is considered positive 
-        detection = np.sum(np.array(results) > detection_threshold)
+        detection = np.sum(np.array(results) >= detection_threshold)
         
         # Verification Threshold: Proportion of positive predictions / total positive samples 
         verification = detection / len(os.listdir(os.path.join('application_data', 'verification_images'))) 
-        verified = verification > verification_threshold
+        verified = verification >= verification_threshold
 
         # Set verification text and color
         red = [1, 0, 0, 1]
@@ -137,9 +137,10 @@ class CamApp(App):
 
         # Log out details
         Logger.info(results)
-        Logger.info(detection)
-        Logger.info(verification)
-        Logger.info(verified)
+        Logger.info('Total images: {0}'.format(len(results)))
+        Logger.info('Nº similar images: {0}'.format(detection))
+        Logger.info('Verification value: {0}'.format(verification))
+        Logger.info('Verified: {0}'.format(verified))
 
         
         return results, verified
