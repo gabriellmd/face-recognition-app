@@ -10,6 +10,8 @@ from kivy.uix.button import Button
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 from kivy.graphics import Color, Rectangle
+# from kivy.graphics.vertex_instructions import RoundedRectangle
+from kivy.graphics.vertex_instructions import RoundedRectangle
 from kivy.logger import Logger
 from kivy.lang import Builder
 
@@ -23,43 +25,60 @@ from layers import L1Dist
 Builder.load_file('label_color.kv')
 
 class RoundedButton(Button):
+    # def on_size(self, *args):
+    #     self.canvas.before.clear()
+    #     with self.canvas.before:
+    #         Color(self.color)
+    #         RoundedRectangle(size=self.size, pos=self.pos, radius=[50])
     pass
 
 class MyLogo(Label):
     def on_size(self, *args):
         self.canvas.before.clear()
         with self.canvas.before:
-            Color(0, 1, 0, 0.25)
+            Color(0, 0, 0, 0)
             Rectangle(size=self.size)
 
-class BlackLabel(Label):
-    def on_size(self, *args):
-        self.canvas.before.clear()
-        with self.canvas.before:
-            Color(0, 0, 0, 0.25)
-            Rectangle(size=self.size)
+class ResultLabel(Label):
+    pass
+
+class MainLayout(BoxLayout):
+    pass
 
 # Build app and layout
 class CamApp(App):
 
     def build(self):
+        
+        self.total_images = len(os.listdir(os.path.join('application_data', 'verification_images')))
 
-        blue = [0.1, 0, 1, 1]
+        # Colors to use
+        self.color_gray = [134/255, 135/255, 134/255, 1]
+        self.color_cream = [184/255, 104/255, 104/255, 1]
+        self.color_cream2 = [179/255, 93/255, 93/255, 1]
+        self.color_cian = [6/255, 168/255, 204/255, 1]
+        self.color_blue = [19/255, 141/255, 168/255, 1]
+        self.red = [191/255, 25/255, 42/255, 1]
+        self.green = [0, 1, 0, 1]
 
         # Main layout components
+        self.margin_top = Label(text="", size_hint=(1, .1))
         self.logo = MyLogo(text="Face Recognizer APP", size_hint=(1,.15))
         self.web_cam = Image(size_hint=(1,.8))
-        self.button = RoundedButton(text="Click to Verify", on_press=self.verify, background_color=blue, size_hint=(0.5, .15), pos_hint={'center_x': 0.5})
-        self.black_label = BlackLabel(text="", size_hint=(1,.05))
-        self.verification_label = Label(text="Verification Uninitiated", size_hint=(1, .15))
+        self.button = RoundedButton(text="Verify!",  on_press=self.trigger_verify, size_hint=(0.10, .20), pos_hint={'center_x': 0.5})
+        self.middle_label = Label(text="", size_hint=(1,.05))
+        self.verification_label = ResultLabel(text="Verification unitialized", background_color=self.color_cream2, size_hint=(0.40, .125), pos_hint={'center_x': 0.5})
+        self.margin_botton = Label(text="", color=(1, 1, 1, 1), size_hint=(1, .15))
 
         # Add items to layout
-        layout = BoxLayout(orientation='vertical')
+        layout = MainLayout(orientation='vertical')
+        layout.add_widget(self.margin_top)
         layout.add_widget(self.logo)
         layout.add_widget(self.web_cam)
         layout.add_widget(self.button)
-        layout.add_widget(self.black_label)
+        layout.add_widget(self.middle_label)
         layout.add_widget(self.verification_label)
+        layout.add_widget(self.margin_botton)
 
         # Load tensorflow/keras model
         self.model = tf.keras.models.load_model('siamese_model_400_30.h5', custom_objects={'L1Dist':L1Dist})
@@ -99,8 +118,20 @@ class CamApp(App):
         # Return image
         return img
 
+    def trigger_verify(self, *args):
+        self.button.text = 'Wait'
+        self.verification_label.text = 'Verifying...'
+        Clock.schedule_once(self.verify, 0.5)
+
+    def trigger_reset(self, p=''):
+        Clock.usleep(1500000)
+        self.button.text = 'Verify!'
+        self.verification_label.text = 'Verification unitialized' 
+        self.verification_label.background_color = self.color_cream2
+
     # Verification function to verify person
     def verify(self, *args):
+            
         # Specify thresholds
         detection_threshold = 0.7
         verification_threshold = 0.7
@@ -113,12 +144,18 @@ class CamApp(App):
 
         # Build results array
         results = []
-        for image in os.listdir(os.path.join('application_data', 'verification_images')):
+        self.count_images = 0
+        verification_images = os.listdir(os.path.join('application_data', 'verification_images'))
+        for image in verification_images:
+            self.count_images += 1
+            Logger.info('Processing {0}/{1} image'.format(self.count_images, len(verification_images)))
+                
             input_img = self.pre_process(os.path.join('application_data', 'input_image', 'input_image.jpg'))
             validation_img = self.pre_process(os.path.join('application_data', 'verification_images', image))
-            
+
             # Make Predictions 
             result = self.model.predict(list(np.expand_dims([input_img, validation_img], axis=1)))
+
             results.append(result)
         
         # Detection Threshold: Metric above which a prediciton is considered positive 
@@ -128,20 +165,16 @@ class CamApp(App):
         verification = detection / len(os.listdir(os.path.join('application_data', 'verification_images'))) 
         verified = verification >= verification_threshold
 
-        # Set verification text and color
-        red = [1, 0, 0, 1]
-        green = [0, 1, 0, 1]
-        # self.verification_label.text = 'Verified! Access granted!' if verified == True else 'Unverified! Access Denied!'
         self.verification_label.text = 'Verified!' if verified == True else 'Unverified!'
-        self.verification_label.background_color = green if verified == True else red
+        self.verification_label.background_color = self.green if verified == True else self.red
 
         # Log out details
-        Logger.info(results)
         Logger.info('Total images: {0}'.format(len(results)))
         Logger.info('Nº similar images: {0}'.format(detection))
         Logger.info('Verification value: {0}'.format(verification))
         Logger.info('Verified: {0}'.format(verified))
 
+        Clock.schedule_once(self.trigger_reset, 5)
         
         return results, verified
 
