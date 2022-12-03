@@ -7,5 +7,5 @@ Application created using Siamese Neural Network to verify similarity between im
 
 -------------
 Created to compose a note for the machine learning discipline of the master's degree in computer science at UFCG 2022.2  
-See demo expalined in portuguese: [APP's Demo](https://drive.google.com/file/d/1o-zVebpeXAiV5jyhmAwta8BU66gQFYrd/view?usp=sharing)
+See demo expalined in portuguese: [APP's Demo](https://drive.google.com/file/d/1bxQueLTobd2mwPEdKVmkMvRM1sYWi4WY/view?usp=sharing)
 
